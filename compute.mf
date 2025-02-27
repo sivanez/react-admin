@@ -1,0 +1,1015 @@
+meta-data:
+  manifest-schema: ComputeConfiguration
+  manifest-version: "0.1"
+compute-config:
+  - name: "eqt-uiux-web"
+    description: "EQTrade DMZ1 Web Servers"
+    type: Virtual
+    product: RHEL_HTTPD
+    product-profile: GDCE Zeus
+    count: 2
+    target:
+      - SG
+      - HK
+    target-zone: dmz1
+    os: SCB-RHEL8
+    cpu: 4
+    memory: 16
+    resilience-level: Geo
+    server-function: a #Infra/Application/Database
+    no-of-additional-ip: 1
+    attach-storage-nic: false
+    backup: null #TBA
+    san:
+      - size: 200 # Storage size in GB
+        index: 1
+        scsi-controller: 1
+        vgname: appvg
+        description: volume group for rhel-httpd
+        mount-path:
+        lvm:
+          - lvsize: 30
+            lvname: applv
+            description: Application deployment scripts volume
+            mount-path: /apps
+            owner: httpadm
+            group: httpadm
+            mode: "755"
+          - lvsize: 20
+            lvname: httpdlv
+            description: web servers config volume
+            mount-path: /apps/httpd
+            owner: httpadm
+            group: httpadm
+            mode: "755"
+          - lvsize: 100
+            lvname: appsuplv
+            description: web servers log volume
+            mount-path: /apps/support/logs/httpd
+            owner: httpadm
+            group: httpadm
+            mode: "755"
+    nas: null
+    os-groups:
+      - group: httpadm
+        gid: 5544
+      - group: appsup
+        gid: 6655
+    os-users:
+      - user: "httpadm"
+        uid: 5544
+        gid: 5544
+        home: /home/httpadm
+      - user: "appsup"
+        uid: 6655
+        gid: 6655
+        home: /home/appsup
+        description: "Application Support Account"
+    ulimits:
+      - "httpadm soft nofile 57334"
+      - "httpadm hard nofile 65536"
+      - "httpadm soft nproc 131072"
+      - "httpadm hard nproc 131072"
+      - "httpadm soft core 100000"
+      - "httpadm hard core 100000"
+      - "httpadm soft stack 65536"
+      - "httpadm hard stack 65536"
+    yum-packages:
+      - python3-pip
+      - podman
+      - ansible
+      - dos2unix
+      - bzip2
+    dr: Active-Passive
+    web-instancenames:
+      - EQT_UI_WEB_PRD01
+      - EQT_UI_WEB_PRD02
+    standard-bootstrap:
+      - id: 1
+        run-as: httpadm
+        description: "Red Hat Apache HTTPD 2.6"
+        type: Software #Software/Script
+        gts-id: GTS-5056 # Red Hat Apache HTTPD 2.6
+        version: "2.6"
+        rollback-script: null # script to rollback the changes
+    custom-bootstrap: null
+  - name: "eqt-dmz2-nginx"
+    description: "EQTrade DMZ2 Nginx Server"
+    type: Virtual
+    product: RHEL_NGINX
+    product-profile: GDCE Zeus
+    count: 2
+    target:
+      - SG
+      - HK
+    target-zone: dmz2
+    os: SCB-RHEL8
+    cpu: 4
+    memory: 32
+    resilience-level: Geo
+    server-function: a #Infra/Application/Database
+    no-of-additional-ip: 1
+    attach-storage-nic: false
+    backup: null #TBA
+    san:
+      - size: 200 # Storage size in GB
+        index: 1
+        scsi-controller: 1
+        vgname: appvg
+        description: volume group for rhel-nginx
+        mount-path:
+        lvm:
+          - lvsize: 30
+            lvname: applv
+            description: Application deployment scripts volume
+            mount-path: /apps
+            owner: nginxadm
+            group: nginxadm
+            mode: "755"
+          - lvsize: 20
+            lvname: nginxlv
+            description: nginx servers configs volume
+            mount-path: /apps/nginx
+            owner: nginxadm
+            group: nginxadm
+            mode: "755"
+          - lvsize: 100
+            lvname: appsuplv
+            description: nginx servers log volume
+            mount-path: /apps/support/logs/nginx
+            owner: nginxadm
+            group: nginxadm
+            mode: "755"
+    nas: null
+    os-groups:
+      - group: nginxadm
+        gid: 5545
+      - group: appsup
+        gid: 6655
+    os-users:
+      - user: nginxadm
+        uid: 5545
+        gid: 5545
+        home: /home/nginxadm
+      - user: "appsup"
+        uid: 6655
+        gid: 6655
+        home: /home/appsup
+        description: "Application Support Account"
+    ulimits:
+      - "nginxadm soft nofile 57334"
+      - "nginxadm hard nofile 65536"
+      - "nginxadm soft nproc 131072"
+      - "nginxadm hard nproc 131072"
+      - "nginxadm soft core 100000"
+      - "nginxadm hard core 100000"
+      - "nginxadm soft stack 65536"
+      - "nginxadm hard stack 65536"
+    yum-packages:
+      - python3-pip
+      - podman
+      - ansible
+      - dos2unix
+      - bzip2
+    dr: Active-Passive
+    web-instancenames:
+      - EQT_DMZ2_NGNX_PRD01
+      - EQT_DMZ2_NGNX_PRD02
+    standard-bootstrap:
+      - id: 1
+        run-as: nginxadm
+        description: "NGINX 1.20.1"
+        type: Software #Software/Script
+        gts-id: GTS-4864 #NGINX
+        version: "1.20.1"
+        rollback-script: null # script to rollback the changes
+    custom-bootstrap: null
+  - name: "eqt-dzh-web"
+    description: "EQTrade DZH Web Components"
+    type: Virtual
+    product: RHEL_HTTPD
+    product-profile: GDCE Zeus
+    count: 2
+    target:
+      - SG
+      - HK
+    target-zone: campus
+    os: SCB-RHEL8
+    cpu: 4
+    memory: 32
+    resilience-level: Geo
+    server-function: a #Infra/Application/Database
+    no-of-additional-ip: 1
+    attach-storage-nic: false
+    backup: null #TBA
+    san:
+      - size: 200 # Storage size in GB
+        index: 1
+        scsi-controller: 1
+        vgname: appvg
+        description: volume group for rhel-httpd
+        mount-path:
+        lvm:
+          - lvsize: 30
+            lvname: applv
+            description: Application deployment scripts volume
+            mount-path: /apps
+            owner: httpadm
+            group: httpadm
+            mode: "755"
+          - lvsize: 20
+            lvname: httpdlv
+            description: web servers config volume
+            mount-path: /apps/httpd
+            owner: httpadm
+            group: httpadm
+            mode: "755"
+          - lvsize: 100
+            lvname: appsuplv
+            description: web servers log volume
+            mount-path: /apps/support/logs/httpd
+            owner: httpadm
+            group: httpadm
+            mode: "755"
+    nas: null
+    os-groups:
+      - group: httpadm
+        gid: 5544
+      - group: appsup
+        gid: 6655
+    os-users:
+      - user: "httpadm"
+        uid: 5544
+        gid: 5544
+        home: /home/httpadm
+      - user: "appsup"
+        uid: 6655
+        gid: 6655
+        home: /home/appsup
+        description: "Application Support Account"
+    ulimits:
+      - "httpadm soft nofile 57334"
+      - "httpadm hard nofile 65536"
+      - "httpadm soft nproc 131072"
+      - "httpadm hard nproc 131072"
+      - "httpadm soft core 100000"
+      - "httpadm hard core 100000"
+      - "httpadm soft stack 65536"
+      - "httpadm hard stack 65536"
+    yum-packages:
+      - ansible
+      - dos2unix
+      - bzip2
+    dr: Active-Passive
+    web-instancenames:
+      - EQT_DZH_API_WEB01
+      - EQT_DZH_API_WEB02
+      - EQT_DZH_DL_WEB01
+      - EQT_DZH_BO_WEB01
+    standard-bootstrap:
+      - id: 1
+        run-as: httpadm
+        description: "Red Hat Apache HTTPD 2.6"
+        type: Software #Software/Script
+        gts-id: GTS-5056 # Red Hat Apache HTTPD 2.6
+        version: "2.6"
+        rollback-script: null # script to rollback the changes
+    custom-bootstrap: null
+  - name: "eqt-dzh-app"
+    description: "EQTrade DZH J2EE Components - DL,BO,DZHAPI"
+    type: Virtual
+    product: OPENSOURCE_TOMCAT9
+    product-profile: GDCE Zeus
+    count: 2
+    target:
+      - SG
+      - HK
+    target-zone: campus
+    os: SCB-RHEL8
+    cpu: 4
+    memory: 32
+    resilience-level: Geo
+    server-function: a #Infra/Application/Database
+    no-of-additional-ip: 1
+    attach-storage-nic: false
+    backup: null #TBA
+    san:
+      - size: 200
+        index: 1
+        scsi-controller: 1
+        vgname: appvg
+        description: volume group for jwstomcat
+        mount-path: null
+        lvm:
+          - lvsize: 30
+            lvname: applv
+            description: Application deployment scripts volume
+            mount-path: /apps
+            owner: tomadm
+            group: tomadm
+            mode: "755"
+          - lvsize: 20
+            lvname: tomcatlv
+            description: Disk for tomcat
+            mount-path: /apps/tomcat
+            owner: tomadm
+            group: tomadm
+            mode: "755"
+          - lvsize: 100
+            lvname: loglv
+            description: Disk for tomcat logs
+            mount-path: /apps/support/logs/tomcat
+            owner: tomadm
+            group: tomadm
+            mode: "755"
+    nas: null
+    os-groups:
+      - group: tomadm
+        gid: 5566
+      - group: appsup
+        gid: 6655
+    os-users:
+      - user: "tomadm"
+        uid: 5566
+        gid: 5566
+        home: /home/tomadm
+        description: "Tomcat Service Account"
+      - user: "appsup"
+        uid: 6655
+        gid: 6655
+        home: /home/appsup
+        description: "Application Support Account"
+    ulimits:
+      - "tomadm soft nofile 57334"
+      - "tomadm hard nofile 65536"
+      - "tomadm soft nproc 131072"
+      - "tomadm hard nproc 131072"
+      - "tomadm soft core 100000"
+      - "tomadm hard core 100000"
+      - "tomadm soft stack 65536"
+      - "tomadm hard stack 65536"
+    yum-packages:
+      - ansible
+      - dos2unix
+      - bzip2
+    dr: Active-Passive
+    web-instancenames:
+      - EQT_DZH_API_APP01
+      - EQT_DZH_API_APP02
+      - EQT_DZH_DL_APP01
+      - EQT_DZH_BO_APP01
+    web-javaversion: java17
+    standard-bootstrap:
+      - id: 1
+        run-as: tomadm
+        description: "Java 17"
+        type: Software #Software/Script
+        gts-id: GTS-2730 #Java JDK 17
+        version: "17"
+        rollback-script: null # script to rollback the changes
+      - id: 2
+        run-as: tomadm
+        description: "OPENSOURCE_TOMCAT9"
+        type: Software #Software/Script
+        gts-id: GTS-1816 # OPENSOURCE_TOMCAT9
+        version: "9.x"
+        rollback-script: null # script to rollback the changes
+    custom-bootstrap: null
+  - name: "eqt-dzh-OMS"
+    description: "EQTrade DZH OMS Components"
+    type: Virtual
+    product: Generic
+    product-profile: GDCE Zeus
+    count: 2
+    target:
+      - SG
+      - HK
+    target-zone: campus
+    os: SCB-RHEL8
+    cpu: 4
+    memory: 32
+    resilience-level: Geo
+    server-function: a #Infra/Application/Database
+    no-of-additional-ip: 1
+    attach-storage-nic: false
+    backup: null #TBA
+    san:
+      - size: 200 # Storage size in GB
+        index: 1
+        scsi-controller: 1
+        vgname: appvg
+        description: volume group for dzh-oms
+        mount-path:
+        lvm:
+          - lvsize: 50
+            lvname: applv
+            description: Application volume
+            mount-path: /apps
+            owner: appadm
+            group: appadm
+            mode: "755"
+          - lvsize: 100
+            lvname: appsuplv
+            description: Application log volume
+            mount-path: /apps/support
+            owner: appadm
+            group: appadm
+            mode: "755"
+          - lvsize: 20
+            lvname: ctmagent
+            description: ctmagent volume
+            mount-path: /apps/ctmagent
+            owner: ctmagent
+            group: ctmagent
+            mode: "755"
+    nas:
+      - mount-path: "/apps/EQT/ist/data" #DZH persistence files requirements
+        name: "51247-DZH-OMS-DATA"  #DZH OMS DATA NAS
+      - mount-path: "/apps/EQT/ist/data2" #DZH persistence files requirements
+        name: "51247-DZH-OMS-DATA2" #DZH OMS DATA2 NAS
+    os-groups:
+      - group: appadm
+        gid: 6555
+      - group: ctmagent
+        gid: 1107
+      - group: appsup
+        gid: 6655
+    os-users:
+      - user: "appadm"
+        uid: 6555
+        gid: 6555
+        home: /home/appadm
+      - user: "ctmagent"
+        uid: 1102
+        gid: 1107
+        home: /apps/ctmagent
+        description: controlm_agent_local_user
+        shell: /bin/bash
+      - user: "appsup"
+        uid: 6655
+        gid: 6655
+        home: /home/appsup
+        description: "Application Support Account"
+    ulimits:
+      - "* soft nofile 57334"
+      - "* hard nofile 65536"
+      - "* soft nproc 131072"
+      - "* hard nproc 131072"
+      - "* soft core 100000"
+      - "* hard core 100000"
+      - "* soft stack 65536"
+      - "* hard stack 65536"
+    yum-packages:
+      - ansible
+      - dos2unix
+      - bzip2
+      - libnsl
+    dr: Active-Passive
+    standard-bootstrap:
+      - id: 1
+        run-as: jbossadm
+        description: "Java 17"
+        type: Software #Software/Script
+        gts-id: GTS-2730 #Java JDK 17
+        version: "17"
+      - id: 2
+        run-as: root
+        description: "Control-M/Agent"
+        type: Software #Software/Script
+        gts-id: GTS-1225
+        script-location: null # script id/location
+        rollback-script: null # script to rollback the changes
+        version: ""
+        controlm-server-premise: P_E_CTMS04-ONPREM
+    custom-bootstrap: null
+  - name: "eqt-dzh-feed"
+    description: "EQTrade DZH Feed Components"
+    type: Virtual
+    product: Generic
+    product-profile: GDCE Zeus
+    count: 2
+    target:
+      - SG
+      - HK
+    target-zone: campus
+    os: SCB-RHEL8
+    cpu: 4
+    memory: 64
+    resilience-level: Geo
+    server-function: a #Infra/Application/Database
+    no-of-additional-ip: 1
+    attach-storage-nic: false
+    backup: null #TBA
+    san:
+      - size: 200 # Storage size in GB
+        index: 1
+        scsi-controller: 1
+        vgname: appvg
+        description: volume group for dzh-feed
+        mount-path:
+        lvm:
+          - lvsize: 50
+            lvname: applv
+            description: Application volume
+            mount-path: /apps
+            mode: "755"
+          - lvsize: 100
+            lvname: appsuplv
+            description: Application log volume
+            mount-path: /apps/support
+            mode: "755"
+          - lvsize: 20
+            lvname: ctmagent
+            description: ctmagent volume
+            mount-path: /apps/ctmagent
+            owner: ctmagent
+            group: ctmagent
+            mode: "755"
+    nas: null
+    os-groups:
+      - group: appadm
+        gid: 6555
+      - group: ctmagent
+        gid: 1107
+      - group: appsup
+        gid: 6655
+    os-users:
+      - user: "appadm"
+        uid: 6555
+        gid: 6555
+        home: /home/appadm
+      - user: "ctmagent"
+        uid: 1102
+        gid: 1107
+        home: /apps/ctmagent
+        description: controlm_agent_local_user
+        shell: /bin/bash
+      - user: "appsup"
+        uid: 6655
+        gid: 6655
+        home: /home/appsup
+        description: "Application Support Account"
+    ulimits:
+      - "* soft nofile 57334"
+      - "* hard nofile 65536"
+      - "* soft nproc 131072"
+      - "* hard nproc 131072"
+      - "* soft core 100000"
+      - "* hard core 100000"
+      - "* soft stack 65536"
+      - "* hard stack 65536"
+    yum-packages:
+      - ansible
+      - dos2unix
+      - bzip2
+      - libnsl
+    dr: Active-Passive
+    standard-bootstrap:
+      - id: 1
+        run-as: appadm
+        description: "Java 17"
+        type: Software #Software/Script
+        gts-id: GTS-2730 #Java JDK 17
+        version: "17"
+      - id: 2
+        run-as: root
+        description: "Control-M/Agent"
+        type: Software #Software/Script
+        gts-id: GTS-1225
+        script-location: null # script id/location
+        rollback-script: null # script to rollback the changes
+        version: ""
+        controlm-server-premise: P_E_CTMS04-ONPREM
+    custom-bootstrap: null
+  - name: "eqt-dzh-batch"
+    description: "EQTrade DZH Batch Components"
+    type: Virtual
+    product: Generic
+    product-profile: GDCE Zeus
+    count: 2
+    target:
+      - SG
+      - HK
+    target-zone: campus
+    os: SCB-RHEL8
+    cpu: 4
+    memory: 32
+    resilience-level: Geo
+    server-function: a #Infra/Application/Database
+    no-of-additional-ip: 1
+    attach-storage-nic: false
+    backup: null #TBA
+    san:
+      - size: 200 # Storage size in GB
+        index: 1
+        scsi-controller: 1
+        vgname: appvg
+        description: volume group for dzh-batch
+        mount-path:
+        lvm:
+          - lvsize: 50
+            lvname: applv
+            description: Application volume
+            mount-path: /apps
+            mode: "755"
+          - lvsize: 100
+            lvname: appsuplv
+            description: Application log volume
+            mount-path: /apps/support
+            mode: "755"
+          - lvsize: 20
+            lvname: ctmagent
+            description: ctmagent volume
+            mount-path: /apps/ctmagent
+            owner: ctmagent
+            group: ctmagent
+            mode: "755"
+    nas:
+      - mount-path: "/share/imft122" #Mount path for the NAS
+        name: "51247-IMFT" #Name of the NAS to be Mounted
+      - mount-path: "/apps//EQT/ist/data" #DZH persistence files requirements
+        name: "51247-DZH-BATCH-DATA" #DZH BATCH DATA NAS
+      - mount-path: "/apps/EQT/ist/data2" #DZH persistence files requirements
+        name: "51247-DZH-BATCH-DATA2" #DZH BATCH DATA2 NAS
+    os-groups:
+      - group: appadm
+        gid: 6555
+      - group: ctmagent
+        gid: 1107
+      - group: appsup
+        gid: 6655
+      - group: imft #imft
+        gid: 8025
+    os-users:
+      - user: "appadm"
+        uid: 6555
+        gid: 6555
+        secondary-gid:
+          - 8025
+        home: /home/appadm
+      - user: "ctmagent"
+        uid: 1102
+        gid: 1107
+        home: /apps/ctmagent
+        description: controlm_agent_local_user
+        shell: /bin/bash
+      - user: "appsup"
+        uid: 6655
+        gid: 6655
+        home: /home/appsup
+        description: "Application Support Account"
+    ulimits:
+      - "* soft nofile 57334"
+      - "* hard nofile 65536"
+      - "* soft nproc 131072"
+      - "* hard nproc 131072"
+      - "* soft core 100000"
+      - "* hard core 100000"
+      - "* soft stack 65536"
+      - "* hard stack 65536"
+    yum-packages:
+      - ansible
+      - dos2unix
+      - bzip2
+      - libnsl
+    dr: Active-Passive
+    standard-bootstrap:
+      - id: 1
+        run-as: appadm
+        description: "Java 17"
+        type: Software #Software/Script
+        gts-id: GTS-2730 #Java JDK 17
+        version: "17"
+      - id: 2
+        run-as: root
+        description: "Control-M/Agent"
+        type: Software #Software/Script
+        gts-id: GTS-1225
+        script-location: null # script id/location
+        rollback-script: null # script to rollback the changes
+        version: ""
+        controlm-server-premise: P_E_CTMS04-ONPREM
+    custom-bootstrap: null
+  - name: "eqt-scheduler"
+    description: "EQTrade scheduler server"
+    type: Virtual
+    product: Generic
+    product-profile: GDCE Zeus
+    count: 2
+    target:
+      - SG
+      - HK
+    target-zone: campus
+    os: SCB-RHEL8
+    cpu: 4
+    memory: 32
+    resilience-level: Geo
+    server-function: a #Infra/Application/Database
+    no-of-additional-ip: 1
+    attach-storage-nic: false
+    backup: null #TBA
+    san:
+      - size: 200 # Storage size in GB
+        index: 1
+        scsi-controller: 1
+        vgname: appvg
+        description: volume group for eqt-scheduler
+        mount-path:
+        lvm:
+          - lvsize: 50
+            lvname: applv
+            description: Application volume
+            mount-path: /apps
+            mode: "755"
+          - lvsize: 100
+            lvname: appsuplv
+            description: Application log volume
+            mount-path: /apps/support
+            mode: "755"
+          - lvsize: 20
+            lvname: ctmagent
+            description: ctmagent volume
+            mount-path: /apps/ctmagent
+            owner: ctmagent
+            group: ctmagent
+            mode: "755"
+    nas: null
+    os-groups:
+      - group: appadm
+        gid: 6555
+      - group: ctmagent
+        gid: 1107
+      - group: splunk
+        gid: 10134
+      - group: appsup
+        gid: 6655
+      - group: imft #imft
+        gid: 8025
+    os-users:
+      - user: "appadm"
+        uid: 6555
+        gid: 6555
+        secondary-gid:
+          - 8025
+        home: /home/appadm
+      - user: "ctmagent"
+        uid: 1102
+        gid: 1107
+        home: /apps/ctmagent
+        description: controlm_agent_local_user
+        shell: /bin/bash
+      - user: "splunk"
+        uid: 8151
+        gid: 10134
+        home: /opt/splunkforwarder
+        description: Splunk forwarder
+        shell: /bin/bash
+      - user: "appsup"
+        uid: 6655
+        gid: 6655
+        home: /home/appsup
+        description: "Application Support Account"
+    ulimits:
+      - "* soft nofile 57334"
+      - "* hard nofile 65536"
+      - "* soft nproc 131072"
+      - "* hard nproc 131072"
+      - "* soft core 100000"
+      - "* hard core 100000"
+      - "* soft stack 65536"
+      - "* hard stack 65536"
+    yum-packages:
+      - ansible
+      - dos2unix
+      - bzip2
+      - libnsl
+    dr: Active-Passive
+    standard-bootstrap:
+      - id: 1
+        run-as: appadm
+        description: "Java 17"
+        type: Software #Software/Script
+        gts-id: GTS-2730 #Java JDK 17
+        version: "17"
+      - id: 2
+        run-as: root
+        description: "Control-M/Agent"
+        type: Software #Software/Script
+        gts-id: GTS-1225
+        script-location: null # script id/location
+        rollback-script: null # script to rollback the changes
+        version: ""
+        controlm-server-premise: P_E_CTMS04-ONPREM
+      - id: 3
+        run-as: splunk
+        description: "Splunk"
+        type: Software #Software/Script
+        gts-id: GTS-4321 # Required for Software installation
+        version: "1.x"
+    custom-bootstrap: null
+  - name: "eqt-oracle-19c"
+    description: "Oracle 19c Server for EQTrade"
+    type: Virtual
+    product: Oracle
+    oracle-parameters:
+      oracle-version: 19c
+      db-charset: AL32UTF8
+      national-charset: AL16UTF16
+      is-olap-install: true
+    product-profile: GDCE Zeus
+    count: 2
+    target:
+      - SG
+      - HK
+    target-zone: campus
+    os: SCB-RHEL9
+    cpu: 16
+    memory: 128
+    resilience-level: Geo
+    server-function: d #Infra/Application/Database
+    no-of-additional-ip: 0
+    attach-storage-nic: false
+    backup: null #<TODO>
+    san:
+      - size: 200
+        index: 1
+        scsi-controller: 0
+        description: Binary
+        mount-path: ""
+        vgname: null
+        lvm: null
+      - size: 1024
+        index: 2
+        scsi-controller: 0
+        description: FRA disk
+        mount-path: ""
+        vgname: null
+        lvm: null
+      - size: 50
+        index: 0
+        scsi-controller: 2
+        description: REDO1 disk
+        mount-path: ""
+        vgname: null
+        lvm: null
+      - size: 1024
+        index: 0
+        scsi-controller: 1
+        description: DATA disk
+        mount-path: ""
+        vgname: null
+        lvm: null
+      - size: 50
+        index: 0
+        scsi-controller: 3
+        description: REDO2 disk
+        mount-path: ""
+        vgname: null
+        lvm: null
+    # san:
+    #   - size: 200 # Storage size in GB
+    #     index: 1
+    #     scsi-controller: 1
+    #     description: DB SAN Disk Tier 2
+    #     mount-path: /u01/app/oracle
+    #     vgname: null
+    #     lvm: null
+    #   - size: 1024
+    #     index: 2
+    #     scsi-controller: 1
+    #     description: DB SAN Disk Tier 2
+    #     mount-path: /oradata
+    #     vgname: null
+    #     lvm: null
+    #   - size: 1024 # Storage size in GB
+    #     index: 3
+    #     scsi-controller: 1
+    #     description: DB SAN Disk Tier 2
+    #     mount-path: /orafra
+    #     vgname: null
+    #     lvm: null
+    #   - size: 10 # Storage size in GB
+    #     index: 4
+    #     scsi-controller: 1
+    #     description: DB SAN Disk Tier 2
+    #     mount-path: /u01/app/oracle/product/agent
+    #     vgname: null
+    #     lvm: null
+    #   - size: 50 # Storage size in GB
+    #     index: 5
+    #     scsi-controller: 1
+    #     description: DB SAN Disk Tier 2
+    #     mount-path: /oraredo1
+    #     vgname: null
+    #     lvm: null
+    #   - size: 50 # Storage size in GB
+    #     index: 6
+    #     scsi-controller: 1
+    #     description: DB SAN Disk Tier 2
+    #     mount-path: /oraredo2
+    #     vgname: null
+    #     lvm: null
+    #   - size: 50 # Storage size in GB
+    #     index: 8
+    #     scsi-controller: 1
+    #     description: DB SAN Disk Tier 2
+    #     mount-path: /u01/app/oracle/product/db
+    #     vgname: null
+    #     lvm: null
+    #   - size: 200 # Storage size in GB
+    #     index: 9
+    #     scsi-controller: 1
+    #     description: DB SAN Disk Tier 2
+    #     mount-path: /oradump
+    #     vgname: null
+    #     lvm: null
+    nas: null
+    os-groups: null
+    os-users: null
+    dr: Active-Passive
+    standard-bootstrap:
+      - id: 1
+        run-as: "oracle"
+        version: "19c"
+        description: "Oracle Database 19c Enterprise Edition"
+        type: Software
+        gts-id: "GTS-2059"
+        rollback-script: null
+    custom-bootstrap: null
+    tags:
+      - name: source-db-host-name
+        value: "hklvdpapp134"
+      - name: source-db-instance-name
+        value: "POHK1EQT@HKLVDPAPP134"
+      - name: source-db-host-name
+        value: "hklvdsapp134"
+      - name: source-db-instance-name
+        value: "POHK1EQT_DG@HKLVDSAPP134"
+nginx-lb-config:
+  - fdname: eqt-lb01-dmz1-web
+    description: DMZ1 Nginx Loadbalancer for UI Webservers
+    fdtype: Nginx
+    fdshortname:
+      - eqtrade-web-dmz1
+    fdinfra: DMZ1
+    fdviptype: AA
+    fdvipport:
+      - 443
+    fdpoolmembers:
+      - eqt-uiux-web:8453
+      - eqt-uiux-web:8463
+    fdprotocol: https
+    #fdtcpssl: false
+    #fdunicastip: null
+    #fdloadbalancingmode: round-robin
+
+  - fdname: eqt-lb01-dmz2-web
+    description: DMZ2 Nginx Loadbalancer for UI Webservers
+    fdtype: Nginx
+    fdshortname:
+      - eqtrade-web-dmz2
+    fdinfra: DMZ2
+    fdviptype: AA
+    fdvipport:
+      - 443
+    fdpoolmembers:
+      - eqt-dmz2-nginx:8453
+      - eqt-dmz2-nginx:8463
+    fdprotocol: https
+    #fdtcpssl: false
+    #fdunicastip: null
+    #fdloadbalancingmode: round-robin
+
+  - fdname: eqt-lb01-gwan-web
+    description: GWAN Nginx Loadbalancer for EQT Webservers
+    fdtype: Nginx
+    fdshortname:
+      - eqtrade-web-gwan
+    fdinfra: LAN
+    fdviptype: AA
+    fdvipport:
+      - 443  #/dealer-web
+      - 8443 #/bo-web
+      - 8453 #/dzhapi-web
+      - 9443 #/bo-app
+      - 9453 #/dealer-app
+      - 9463 #/dzhapi-app
+    fdpoolmembers:
+      - eqt-dzh-web:8543 #/dealer-web
+      - eqt-dzh-web:8553 #/bo-web
+      - eqt-dzh-web:8563 #/dzhapi-web
+      - eqt-dzh-web:8573 #/dzhapi-web
+      - eqt-dzh-app:9013 #/bo-app
+      - eqt-dzh-app:9023 #/dealer-app
+      - eqt-dzh-app:9033 #/dzhapi-app
+      - eqt-dzh-app:9043 #/dzhapi-app
+    fdprotocol: https
+    #fdtcpssl: false
+    #fdunicastip: null
+    #fdloadbalancingmode: round-robin
+
+    tags:
+      - name: region
+        value: global
+
+appliance-config: null
